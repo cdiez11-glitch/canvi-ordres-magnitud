@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Canvi d'ordres de magnitud</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --text:#1b2333; --muted:#5b6478;
+  --accent:#3f5efb; --accent2:#7c4dff; --good:#1f9d55; --bad:#e0433f;
+  --border:#e2e6f0;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12141c; --card:#1b1e2a; --text:#eef0f6; --muted:#9aa2b8;
+    --border:#2a2e3d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12141c; --card:#1b1e2a; --text:#eef0f6; --muted:#9aa2b8;
+  --border:#2a2e3d;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100%; background:var(--bg); color:var(--text);
+  font-family: "Segoe UI", Roboto, -apple-system, Arial, sans-serif;
+  display:flex; justify-content:center; padding:24px 16px 40px;
+}
+.wrap{width:100%; max-width:560px;}
+h1{font-size:1.3rem; margin:0 0 4px;}
+p.sub{color:var(--muted); margin:0 0 20px; font-size:0.92rem;}
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  padding:22px; box-shadow:0 4px 18px rgba(20,20,40,0.06);
+}
+.scorebar{display:flex; justify-content:space-between; font-size:0.85rem; color:var(--muted); margin-bottom:14px;}
+.scorebar b{color:var(--text);}
+.question{
+  text-align:center; font-size:1.35rem; font-weight:600; margin:10px 0 18px; line-height:1.5;
+}
+.question .unit{color:var(--accent); font-weight:700;}
+.answer-row{display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:8px;}
+input#answer{
+  width:150px; padding:12px 14px; font-size:1.15rem; text-align:center;
+  border:2px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text);
+}
+input#answer:focus{outline:none; border-color:var(--accent);}
+.unit-tag{
+  font-weight:700; font-size:1.1rem; background:var(--accent); color:#fff;
+  padding:10px 14px; border-radius:10px;
+}
+.modes{display:flex; gap:8px; justify-content:center; margin-bottom:18px; flex-wrap:wrap;}
+.mode-btn{
+  border:1px solid var(--border); background:var(--bg); color:var(--muted);
+  border-radius:999px; padding:7px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;
+}
+.mode-btn.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+.actions{display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+button{
+  border:none; border-radius:10px; padding:11px 18px; font-size:0.95rem; font-weight:600;
+  cursor:pointer; transition:transform .08s ease;
+}
+button:active{transform:scale(0.97);}
+#checkBtn{background:var(--accent); color:#fff;}
+#nextBtn{background:var(--accent2); color:#fff; display:none;}
+#helpBtn{background:transparent; color:var(--muted); border:1px solid var(--border);}
+.feedback{
+  text-align:center; margin-top:14px; font-weight:600; min-height:24px; font-size:0.98rem;
+}
+.feedback.good{color:var(--good);}
+.feedback.bad{color:var(--bad);}
+table.help{
+  width:100%; border-collapse:collapse; margin-top:14px; font-size:0.85rem;
+  display:none; overflow-x:auto;
+}
+table.help.show{display:table;}
+table.help th, table.help td{
+  border:1px solid var(--border); padding:6px 8px; text-align:center;
+}
+table.help th{color:var(--muted); font-weight:600;}
+.note{font-size:0.8rem; color:var(--muted); text-align:center; margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Canvi d'ordres de magnitud</h1>
+  <p class="sub">Practica passar quantitats entre CM, DM, UM, C, D i U.</p>
+  <div class="card">
+    <div class="modes">
+      <button class="mode-btn active" data-mode="mixed">Mixt</button>
+      <button class="mode-btn" data-mode="up">Pujar d'ordre</button>
+      <button class="mode-btn" data-mode="down">Baixar d'ordre</button>
+    </div>
+    <div class="scorebar">
+      <span>Encerts: <b id="score">0</b> / <b id="total">0</b></span>
+      <span>Ratxa: <b id="streak">0</b></span>
+    </div>
+    <div class="question" id="question">Carregant...</div>
+    <div class="answer-row">
+      <input type="text" id="answer" inputmode="decimal" placeholder="resultat" autocomplete="off">
+      <span class="unit-tag" id="targetTag">?</span>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions">
+      <button id="checkBtn">Comprova</button>
+      <button id="nextBtn">Següent ➜</button>
+      <button id="helpBtn">Taula d'unitats</button>
+    </div>
+    <table class="help" id="helpTable">
+      <tr><th>CM</th><th>DM</th><th>UM</th><th>C</th><th>D</th><th>U</th></tr>
+      <tr><td>100.000</td><td>10.000</td><td>1.000</td><td>100</td><td>10</td><td>1</td></tr>
+    </table>
+    <p class="note">CM = centena de miler · DM = desena de miler · UM = unitat de miler · C = centena · D = desena · U = unitat</p>
+  </div>
+</div>
+
+<script>
+const UNITS = [
+  {code:'CM', value:100000},
+  {code:'DM', value:10000},
+  {code:'UM', value:1000},
+  {code:'C',  value:100},
+  {code:'D',  value:10},
+  {code:'U',  value:1}
+];
+
+let score = 0, total = 0, streak = 0;
+let current = null;
+let mode = 'mixed'; // 'up' = passar a una unitat més gran (l'índex baixa), 'down' = a una de més petita, 'mixed' = barrejat
+
+function fmt(n){
+  return Math.round(n).toLocaleString('ca-ES');
+}
+
+// Genera un nombre "rodó": una xifra diferent de zero seguida de zeros (7, 50, 200, 4000...)
+// minZeros permet garantir que la divisió posterior doni sempre un resultat enter
+function randRoundNumber(minZeros){
+  const digit = Math.floor(Math.random()*9)+1;         // 1..9
+  const extra = Math.floor(Math.random()*3);           // 0..2 zeros addicionals
+  const zeros = Math.min(minZeros + extra, 6);          // com a màxim 6 zeros
+  return digit * Math.pow(10, zeros);
+}
+
+function newQuestion(){
+  let iSrc = Math.floor(Math.random()*UNITS.length);
+  let iTgt;
+  if(mode === 'up'){
+    // la unitat destí ha de ser més gran -> índex més petit que iSrc
+    if(iSrc === 0) iSrc = Math.floor(Math.random()*(UNITS.length-1))+1;
+    iTgt = Math.floor(Math.random()*iSrc);
+  } else if(mode === 'down'){
+    // la unitat destí ha de ser més petita -> índex més gran que iSrc
+    if(iSrc === UNITS.length-1) iSrc = Math.floor(Math.random()*(UNITS.length-1));
+    iTgt = iSrc + 1 + Math.floor(Math.random()*(UNITS.length-1-iSrc));
+  } else {
+    iTgt = Math.floor(Math.random()*UNITS.length);
+    while(iTgt === iSrc) iTgt = Math.floor(Math.random()*UNITS.length);
+  }
+  const src = UNITS[iSrc], tgt = UNITS[iTgt];
+
+  // exponent de la diferència entre unitats (deu elevat a...)
+  const expDiff = Math.round(Math.log10(tgt.value / src.value));
+  const minZeros = expDiff > 0 ? expDiff : 0; // si la unitat destí és més gran, calen zeros suficients
+
+  const coeff = randRoundNumber(minZeros);
+
+  const answer = Math.round(coeff * src.value / tgt.value);
+
+  current = {src, tgt, coeff, answer};
+
+  document.getElementById('question').innerHTML =
+    `Passa <span class="unit">${coeff} ${src.code}</span> a:`;
+  document.getElementById('targetTag').textContent = tgt.code;
+  document.getElementById('answer').value = '';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('checkBtn').style.display = 'inline-block';
+  document.getElementById('answer').focus();
+}
+
+function checkAnswer(){
+  const raw = document.getElementById('answer').value.trim().replace(',', '.');
+  if(raw === ''){ return; }
+  const given = parseFloat(raw);
+  const fb = document.getElementById('feedback');
+  total++;
+  if(!isNaN(given) && Math.abs(given - current.answer) < 0.0005){
+    score++; streak++;
+    fb.textContent = '✅ Correcte!';
+    fb.className = 'feedback good';
+  } else {
+    streak = 0;
+    fb.textContent = `❌ La resposta correcta és ${fmt(current.answer)} ${current.tgt.code}`;
+    fb.className = 'feedback bad';
+  }
+  document.getElementById('score').textContent = score;
+  document.getElementById('total').textContent = total;
+  document.getElementById('streak').textContent = streak;
+  document.getElementById('checkBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  document.getElementById('nextBtn').focus();
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+    newQuestion();
+  });
+});
+
+document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+document.getElementById('nextBtn').addEventListener('click', newQuestion);
+document.getElementById('helpBtn').addEventListener('click', () => {
+  document.getElementById('helpTable').classList.toggle('show');
+});
+document.getElementById('answer').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    if(document.getElementById('checkBtn').style.display !== 'none'){
+      checkAnswer();
+    } else {
+      newQuestion();
+    }
+  }
+});
+
+newQuestion();
+</script>
+</body>
+</html>
